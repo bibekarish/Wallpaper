@@ -1,412 +1,275 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Premium Wallpaper Gallery - High-quality wallpapers for your devices.">
-    <title>Wallora • Premium Wallpapers</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Premium Wallpaper Gallery - High quality wallpapers for mobile and desktop">
+  <title>Wallora • Premium Wallpapers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            primary: '#6366f1',
-                            dark: '#4f46e5',
-                            bg: '#0f0f17',
-                            card: 'rgba(30, 30, 46, 0.8)'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: #0f0f17;
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Hardware acceleration to prevent animation lag */
-        .will-change-transform {
-            will-change: transform;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f0f17;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
-        }
-    </style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(16px); }
+    .wallpaper-grid img { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .wallpaper-grid img:hover { transform: scale(1.08); filter: brightness(1.1); }
+    .modal { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .skeleton { animation: pulse 1.5s infinite; }
+  </style>
 </head>
-<body class="text-gray-200 overflow-x-hidden min-h-screen flex flex-col">
-
-    <header class="fixed top-0 left-0 right-0 z-50 px-[5%] py-4 flex items-center justify-between bg-white/5 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
-        <div class="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent cursor-pointer select-none">Wallora</div>
-        <nav class="flex items-center gap-6 sm:gap-8">
-            <a href="#gallery" class="text-sm font-medium hover:text-indigo-400 transition-colors duration-200">Discover</a>
-            <a href="#gallery" onclick="showFavorites()" class="text-sm font-medium hover:text-indigo-400 transition-colors duration-200 flex items-center gap-1">
-                Favorites <span id="fav-count" class="text-xs opacity-75 bg-indigo-500/20 px-1.5 py-0.5 rounded-full">(0)</span>
-            </a>
-        </nav>
-    </header>
-
-    <section class="relative h-[90vh] md:h-screen flex items-center justify-center text-center px-4 overflow-hidden">
-        <div class="absolute inset-0 bg-[linear-gradient(rgba(15,15,23,0.65),rgba(15,15,23,0.92))],url('https://picsum.photos/id/1015/1920/1080') center/cover no-repeat -z-10 scale-105 transform will-change-transform animate-[pulse_8s_infinite_alternate]"></div>
-        <div class="max-w-2xl px-4 mt-12">
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 leading-tight">Premium Wallpapers</h1>
-            <p class="text-base sm:text-xl text-gray-400 mb-8 max-w-lg mx-auto">Curated collection of stunning 4K wallpapers for every mood and device.</p>
-            <button onclick="document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' })" class="bg-gradient-to-r from-indigo-500 to-indigo-600 px-8 py-3.5 rounded-full font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_15px_30px_-5px_rgba(99,102,241,0.4)] active:translate-y-0 active:scale-95">
-                Explore Collection
-            </button>
-        </div>
-    </section>
-
-    <div class="sticky top-[60px] md:top-[68px] z-40 px-[5%] py-4 bg-[#0f0f17]/95 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-xl mx-auto relative mb-4">
-            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-            <input type="text" id="search-input" placeholder="Search wallpapers..." onkeyup="filterWallpapers()" class="w-full bg-brand-card text-gray-200 pl-14 pr-6 py-3 rounded-full text-base border border-white/5 focus:outline-none focus:border-indigo-500/50 transition-colors">
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-mountain text-2xl text-violet-400"></i>
+        <h1 class="text-2xl font-bold tracking-tight">Wallora</h1>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="relative w-80">
+          <input id="searchInput" 
+                 type="text" 
+                 placeholder="Search wallpapers..." 
+                 class="w-full bg-zinc-900 border border-white/10 rounded-full py-3 px-5 pl-12 focus:outline-none focus:border-violet-500 transition-colors">
+          <i class="fa-solid fa-magnifying-glass absolute left-5 top-3.5 text-zinc-400"></i>
         </div>
         
-        <div class="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto text-xs sm:text-sm">
-            <button onclick="setSort('all')" id="filter-all" class="filter-btn px-5 py-2 rounded-full bg-brand-card border border-white/5 hover:border-indigo-500/30 active:scale-95 transition-all text-white bg-indigo-600 border-indigo-600">All</button>
-            <button onclick="setSort('name')" id="filter-name" class="filter-btn px-5 py-2 rounded-full bg-brand-card border border-white/5 hover:border-indigo-500/30 active:scale-95 transition-all">A-Z</button>
-            <button onclick="setSort('newest')" id="filter-newest" class="filter-btn px-5 py-2 rounded-full bg-brand-card border border-white/5 hover:border-indigo-500/30 active:scale-95 transition-all">Newest</button>
-            <button onclick="toggleFavorites()" id="filter-fav" class="filter-btn px-5 py-2 rounded-full bg-brand-card border border-white/5 hover:border-indigo-500/30 active:scale-95 transition-all">❤️ Favorites</button>
-        </div>
+        <select id="sortSelect" class="bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-violet-500">
+          <option value="newest">Newest</option>
+          <option value="az">A-Z</option>
+          <option value="favorites">Favorites</option>
+        </select>
+      </div>
     </div>
+  </nav>
 
-    <main class="flex-grow gallery px-[5%] py-12 max-w-[1600px] mx-auto w-full" id="gallery">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div>
-                <h2 id="gallery-title" class="text-2xl sm:text-3xl font-bold tracking-tight">All Wallpapers</h2>
-                <p id="wallpaper-count" class="text-sm text-gray-400 mt-1">0 wallpapers</p>
-            </div>
-            <div class="text-sm text-gray-400 bg-brand-card px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
-                <i class="fas fa-image text-indigo-400"></i> Total available: <span id="total-count" class="font-bold text-gray-200">0</span>
-            </div>
-        </div>
-        
-        <div id="skeleton-loader" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
-            </div>
-        
-        <div id="wallpaper-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            </div>
-    </main>
+  <!-- Hero -->
+  <header class="pt-24 pb-12 text-center bg-gradient-to-b from-zinc-900 to-zinc-950">
+    <h2 class="text-5xl md:text-6xl font-bold mb-4">Discover Premium Wallpapers</h2>
+    <p class="text-zinc-400 text-xl max-w-2xl mx-auto">Handpicked collection for mobile and desktop</p>
+    <div id="counter" class="mt-6 text-sm text-zinc-500"></div>
+  </header>
 
-    <div id="modal" class="modal fixed inset-0 bg-black/95 z-50 hidden items-center justify-center opacity-0 transition-opacity duration-300 will-change-transform backdrop-blur-sm" onclick="closeModal()">
-        <div class="relative max-w-[95%] max-h-[92vh] flex items-center justify-center" onclick="event.stopPropagation()">
-            <span onclick="closeModal()" class="absolute -top-12 sm:top-4 -right-2 sm:-right-12 text-3xl text-gray-400 hover:text-white cursor-pointer p-2 drop-shadow-md transition-colors">&times;</span>
-            <img id="modal-image" src="" alt="" class="max-w-full max-h-[80vh] md:max-h-[85vh] object-contain rounded-xl shadow-2xl transition-transform duration-200 will-change-transform">
-            
-            <div class="absolute bottom-[-70px] sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 bg-black/60 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full shadow-2xl">
-                <button onclick="prevImage()" class="text-xl text-gray-300 hover:text-indigo-400 active:scale-90 transition-all p-1" title="Previous Image"><i class="fas fa-chevron-left"></i></button>
-                <button onclick="downloadCurrent()" class="text-xl text-gray-300 hover:text-indigo-400 active:scale-90 transition-all p-1" title="Download"><i class="fas fa-download"></i></button>
-                <button onclick="shareCurrent()" class="text-xl text-gray-300 hover:text-indigo-400 active:scale-90 transition-all p-1" title="Share"><i class="fas fa-share-alt"></i></button>
-                <button onclick="toggleFavoriteCurrent()" id="modal-fav-btn" class="text-xl text-gray-300 hover:text-indigo-400 active:scale-90 transition-all p-1" title="Favorite"><i class="far fa-heart"></i></button>
-                <button onclick="nextImage()" class="text-xl text-gray-300 hover:text-indigo-400 active:scale-90 transition-all p-1" title="Next Image"><i class="fas fa-chevron-right"></i></button>
-            </div>
-        </div>
+  <!-- Filters -->
+  <div class="max-w-7xl mx-auto px-4 py-6 flex flex-wrap gap-3 justify-center">
+    <button onclick="filterCategory(this)" data-category="all" class="active-filter px-6 py-2 rounded-full bg-violet-600 hover:bg-violet-500 transition">All</button>
+    <button onclick="filterCategory(this)" data-category="mobile" class="px-6 py-2 rounded-full glass hover:bg-white/10 transition">Mobile</button>
+    <button onclick="filterCategory(this)" data-category="desktop" class="px-6 py-2 rounded-full glass hover:bg-white/10 transition">Desktop</button>
+    <button onclick="filterCategory(this)" data-category="nature" class="px-6 py-2 rounded-full glass hover:bg-white/10 transition">Nature</button>
+    <button onclick="filterCategory(this)" data-category="abstract" class="px-6 py-2 rounded-full glass hover:bg-white/10 transition">Abstract</button>
+  </div>
+
+  <!-- Wallpaper Grid -->
+  <main class="max-w-7xl mx-auto px-4 pb-20">
+    <div id="skeleton" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+    <div id="wallpaperGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+  </main>
+
+  <!-- Fullscreen Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center">
+    <div class="relative w-full max-w-5xl mx-auto modal">
+      <button onclick="closeModal()" class="absolute -top-4 -right-4 bg-zinc-900 text-white p-4 rounded-full hover:bg-red-500 transition z-10">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+      
+      <img id="modalImage" class="max-h-[85vh] w-full object-contain mx-auto rounded-2xl" alt="">
+      
+      <div class="flex justify-center gap-6 mt-6">
+        <button onclick="prevImage()" class="glass px-8 py-4 rounded-2xl hover:bg-white/10 transition text-xl"><i class="fa-solid fa-chevron-left"></i></button>
+        <button onclick="downloadCurrent()" class="glass px-8 py-4 rounded-2xl hover:bg-white/10 transition flex items-center gap-3">
+          <i class="fa-solid fa-download"></i> Download
+        </button>
+        <button onclick="toggleFavorite(currentIndex)" id="modalFavBtn" class="glass px-8 py-4 rounded-2xl hover:bg-white/10 transition">
+          <i class="fa-solid fa-heart"></i>
+        </button>
+        <button onclick="shareCurrent()" class="glass px-8 py-4 rounded-2xl hover:bg-white/10 transition"><i class="fa-solid fa-share"></i></button>
+        <button onclick="nextImage()" class="glass px-8 py-4 rounded-2xl hover:bg-white/10 transition text-xl"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
     </div>
+  </div>
 
-    <div onclick="scrollToTop()" id="scroll-top" class="fixed bottom-6 right-6 w-12 h-12 bg-indigo-600 hover:bg-indigo-500 rounded-full hidden items-center justify-center text-xl text-white shadow-xl cursor-pointer hover:-translate-y-1 active:translate-y-0 transition-all duration-200 z-40">
-        <i class="fas fa-arrow-up"></i>
-    </div>
+  <!-- Scroll to Top -->
+  <button id="scrollTop" onclick="scrollToTop()" class="fixed bottom-8 right-8 bg-violet-600 hover:bg-violet-500 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl transition hidden">
+    <i class="fa-solid fa-arrow-up text-xl"></i>
+  </button>
 
-    <footer class="mt-auto border-t border-white/10 text-center py-6 text-sm text-gray-500 bg-brand-bg">
-        <p>&copy; 2026 Wallora. Premium Wallpaper Gallery. Optimized UI.</p>
-    </footer>
+  <script>
+    let wallpapers = [];
+    let currentIndex = 0;
+    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+    let currentFilter = 'all';
 
-    <script>
-        let wallpapers = [];
-        let displayedWallpapers = []; // Fixes bugs when cycling in modal while filters are active
-        let currentFilter = 'all';
-        let currentSearch = '';
-        let favorites = JSON.parse(localStorage.getItem('wallora-favorites') || '[]');
-        let currentModalIndex = -1;
+    // Tailwind Script
+    function initTailwind() {
+      // Already loaded via CDN
+    }
+
+    async function loadWallpapers() {
+      try {
+        const res = await fetch('wallpapers.json');
+        wallpapers = await res.json();
+        renderSkeletons();
+        setTimeout(() => renderWallpapers(), 400);
+        updateCounter();
+      } catch (e) {
+        console.error("Failed to load wallpapers", e);
+      }
+    }
+
+    function renderSkeletons() {
+      const skeleton = document.getElementById('skeleton');
+      skeleton.innerHTML = '';
+      for (let i = 0; i < 12; i++) {
+        skeleton.innerHTML += `
+          <div class="aspect-[9/16] md:aspect-square bg-zinc-900 rounded-3xl skeleton"></div>
+        `;
+      }
+    }
+
+    function renderWallpapers(filtered = null) {
+      const container = document.getElementById('wallpaperGrid');
+      container.innerHTML = '';
+      document.getElementById('skeleton').classList.add('hidden');
+
+      const toRender = filtered || wallpapers;
+
+      toRender.forEach((filename, index) => {
+        const globalIndex = wallpapers.indexOf(filename);
+        const isFav = favorites.includes(filename);
         
-        async function loadWallpapers() {
-            try {
-                // FALLBACK MOCK DATA IF FILE DOES NOT EXIST (For instant sandbox verification)
-                const response = await fetch('wallpapers.json').catch(() => null);
-                if (response && response.ok) {
-                    wallpapers = await response.json();
-                } else {
-                    wallpapers = ["wallpaper1.jpg", "wallpaper2.jpg", "landscape.jpg", "neon-city.jpg", "space.jpg", "minimal.jpg"];
-                    console.warn("Using placeholder array data because wallpapers.json wasn't found.");
-                }
-                
-                document.getElementById('total-count').textContent = wallpapers.length;
-                applyFilters();
-            } catch (error) {
-                console.error('Failed to load wallpapers:', error);
-                document.getElementById('wallpaper-grid').innerHTML = `
-                    <div class="col-span-full text-center py-16">
-                        <h3 class="text-xl font-semibold text-red-400">Error loading wallpapers</h3>
-                        <p class="text-gray-400 mt-2">Please ensure wallpapers.json and wallpapers/ folder are setup.</p>
-                    </div>
-                `;
-            }
-        }
-        
-        function createSkeleton() {
-            const skeletonContainer = document.getElementById('skeleton-loader');
-            skeletonContainer.innerHTML = '';
-            skeletonContainer.classList.remove('hidden');
-            document.getElementById('wallpaper-grid').classList.add('hidden');
-            
-            for (let i = 0; i < 8; i++) {
-                const skel = document.createElement('div');
-                skel.className = 'w-full aspect-[16/9] rounded-2xl bg-slate-800 animate-pulse';
-                skeletonContainer.appendChild(skel);
-            }
-        }
-        
-        function renderWallpapers(wallpaperList) {
-            const grid = document.getElementById('wallpaper-grid');
-            grid.innerHTML = '';
-            displayedWallpapers = wallpaperList; // Cache current viewport state
-            
-            if (wallpaperList.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-20 text-gray-500">
-                        <i class="fas fa-image text-5xl mb-3 opacity-30"></i>
-                        <h3 class="text-lg font-medium text-gray-400">No wallpapers found</h3>
-                        <p class="text-sm mt-1">Try adjusting your search query or filters.</p>
-                    </div>
-                `;
-                updateCount(0);
-                return;
-            }
-            
-            // Document Fragment for high-performance layout painting without DOM bottlenecks
-            const fragment = document.createDocumentFragment();
-            
-            wallpaperList.forEach((filename, index) => {
-                const card = document.createElement('div');
-                card.className = 'group relative rounded-2xl overflow-hidden aspect-[16/9] bg-slate-900 cursor-pointer shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 will-change-transform';
-                
-                card.innerHTML = `
-                    <img src="wallpapers/${filename}" alt="${filename}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 will-change-transform" onerror="this.src='https://picsum.photos/320/180?blur=5'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                        <div class="flex justify-between items-center w-full">
-                            <span class="text-xs sm:text-sm font-medium truncate max-w-[75%] pr-2 drop-shadow">${filename}</span>
-                            <button onclick="event.stopImmediatePropagation(); toggleFavorite('${filename}');" class="text-white hover:text-red-400 transition-colors p-1" aria-label="Favorite image">
-                                <i class="${favorites.includes(filename) ? 'fas text-red-500' : 'far'} fa-heart drop-shadow"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                card.onclick = () => openModal(index);
-                fragment.appendChild(card);
-            });
-            
-            grid.appendChild(fragment);
-            updateCount(wallpaperList.length);
-        }
-        
-        function filterWallpapers() {
-            currentSearch = document.getElementById('search-input').value.toLowerCase().trim();
-            applyFilters();
-        }
-        
-        function setSort(filter) {
-            currentFilter = filter;
-            
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('bg-indigo-600', 'border-indigo-600', 'text-white');
-                if ((filter === 'all' && btn.id === 'filter-all') ||
-                    (filter === 'name' && btn.id === 'filter-name') ||
-                    (filter === 'newest' && btn.id === 'filter-newest') ||
-                    (filter === 'fav' && btn.id === 'filter-fav')) {
-                    btn.classList.add('bg-indigo-600', 'border-indigo-600', 'text-white');
-                }
-            });
-            
-            applyFilters();
-        }
-        
-        function applyFilters() {
-            let filtered = [...wallpapers];
-            
-            if (currentSearch) {
-                filtered = filtered.filter(filename => filename.toLowerCase().includes(currentSearch));
-            }
-            
-            if (currentFilter === 'fav') {
-                filtered = filtered.filter(filename => favorites.includes(filename));
-                document.getElementById('gallery-title').textContent = "Favorites";
-            } else {
-                document.getElementById('gallery-title').textContent = currentFilter === 'all' ? "All Wallpapers" : (currentFilter === 'name' ? "Alphabetical" : "Newest Arrivals");
-            }
-            
-            if (currentFilter === 'name') {
-                filtered.sort((a, b) => a.localeCompare(b));
-            } else if (currentFilter === 'newest') {
-                filtered.reverse();
-            }
-            
-            renderWallpapers(filtered);
-        }
-        
-        function updateCount(count) {
-            document.getElementById('wallpaper-count').textContent = `${count} ${count === 1 ? 'wallpaper' : 'wallpapers'}`;
-        }
-        
-        function openModal(index) {
-            currentModalIndex = index;
-            const modal = document.getElementById('modal');
-            const modalImg = document.getElementById('modal-image');
-            
-            modalImg.src = `wallpapers/${displayedWallpapers[currentModalIndex]}`;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            
-            setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
-            updateModalFavButton();
-            document.body.classList.add('overflow-hidden');
-        }
-        
-        function closeModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.add('opacity-0');
-            setTimeout(() => {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }, 300);
-        }
-        
-        function prevImage() {
-            if (currentModalIndex > 0) {
-                currentModalIndex--;
-                document.getElementById('modal-image').src = `wallpapers/${displayedWallpapers[currentModalIndex]}`;
-                updateModalFavButton();
-            }
-        }
-        
-        function nextImage() {
-            if (currentModalIndex < displayedWallpapers.length - 1) {
-                currentModalIndex++;
-                document.getElementById('modal-image').src = `wallpapers/${displayedWallpapers[currentModalIndex]}`;
-                updateModalFavButton();
-            }
-        }
-        
-        function updateModalFavButton() {
-            const filename = displayedWallpapers[currentModalIndex];
-            const icon = document.querySelector('#modal-fav-btn i');
-            if (favorites.includes(filename)) {
-                icon.className = 'fas fa-heart text-red-500';
-            } else {
-                icon.className = 'far fa-heart text-gray-300';
-            }
-        }
-        
-        function downloadCurrent() {
-            const filename = displayedWallpapers[currentModalIndex];
-            const link = document.createElement('a');
-            link.href = `wallpapers/${filename}`;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        function shareCurrent() {
-            const filename = displayedWallpapers[currentModalIndex];
-            const url = window.location.href.split('#')[0] + `wallpapers/${filename}`;
-            
-            if (navigator.share) {
-                navigator.share({ title: 'Wallora', text: `Check this template: ${filename}`, url: url });
-            } else {
-                navigator.clipboard.writeText(url).then(() => { alert('Link copied to clipboard!'); });
-            }
-        }
-        
-        function toggleFavorite(filename) {
-            if (favorites.includes(filename)) {
-                favorites = favorites.filter(f => f !== filename);
-            } else {
-                favorites.push(filename);
-            }
-            localStorage.setItem('wallora-favorites', JSON.stringify(favorites));
-            updateFavCount();
-            applyFilters();
-        }
-        
-        function toggleFavoriteCurrent() {
-            toggleFavorite(displayedWallpapers[currentModalIndex]);
-            updateModalFavButton();
-        }
-        
-        function updateFavCount() {
-            document.getElementById('fav-count').textContent = `(${favorites.length})`;
-        }
-        
-        function showFavorites() {
-            setSort('fav');
-            document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function toggleFavorites() {
-            setSort(currentFilter === 'fav' ? 'all' : 'fav');
-        }
-        
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        
-        // Listeners & Swipe Actions
-        document.addEventListener('keydown', (e) => {
-            if (!document.getElementById('modal').classList.contains('hidden')) {
-                if (e.key === 'Escape') closeModal();
-                if (e.key === 'ArrowLeft') prevImage();
-                if (e.key === 'ArrowRight') nextImage();
-            }
-        });
-        
-        window.addEventListener('scroll', () => {
-            const scrollTopBtn = document.getElementById('scroll-top');
-            if (window.scrollY > 600) {
-                scrollTopBtn.classList.remove('hidden');
-                scrollTopBtn.classList.add('flex');
-            } else {
-                scrollTopBtn.classList.add('hidden');
-                scrollTopBtn.classList.remove('flex');
-            }
-        });
-        
-        window.onload = function() {
-            createSkeleton();
-            setTimeout(() => {
-                document.getElementById('skeleton-loader').classList.add('hidden');
-                document.getElementById('wallpaper-grid').classList.remove('hidden');
-                loadWallpapers();
-            }, 600);
-            updateFavCount();
-            
-            let touchStartX = 0;
-            const modalContent = document.querySelector('.modal-content') || document.getElementById('modal-image');
-            modalContent.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
-            modalContent.addEventListener('touchend', e => {
-                const touchEndX = e.changedTouches[0].screenX;
-                if (touchEndX < touchStartX - 60) nextImage();
-                if (touchEndX > touchStartX + 60) prevImage();
-            }, {passive: true});
-        };
-    </script>
+        const div = document.createElement('div');
+        div.className = `group relative aspect-[9/16] md:aspect-square overflow-hidden rounded-3xl cursor-pointer bg-zinc-900`;
+        div.innerHTML = `
+          <img src="wallpapers/${filename}" 
+               data-src="wallpapers/${filename}" 
+               loading="lazy"
+               class="w-full h-full object-cover wallpaper-grid" 
+               alt="${filename}">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition"></div>
+          <button onclick="event.stopImmediatePropagation(); toggleFavorite(${globalIndex});" 
+                  class="absolute top-4 right-4 ${isFav ? 'text-red-500' : 'text-white/70'} hover:text-red-500 transition">
+            <i class="fa-solid fa-heart text-2xl drop-shadow"></i>
+          </button>
+          <div class="absolute bottom-4 left-4 text-xs bg-black/50 px-3 py-1 rounded-full backdrop-blur">${filename.split('.').pop().toUpperCase()}</div>
+        `;
+        div.onclick = () => openModal(globalIndex);
+        container.appendChild(div);
+      });
+    }
+
+    function openModal(index) {
+      currentIndex = index;
+      const modal = document.getElementById('modal');
+      const img = document.getElementById('modalImage');
+      img.src = `wallpapers/${wallpapers[index]}`;
+      modal.classList.remove('hidden');
+      updateModalFavButton();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+      document.body.style.overflow = 'visible';
+    }
+
+    function nextImage() {
+      currentIndex = (currentIndex + 1) % wallpapers.length;
+      document.getElementById('modalImage').src = `wallpapers/${wallpapers[currentIndex]}`;
+      updateModalFavButton();
+    }
+
+    function prevImage() {
+      currentIndex = (currentIndex - 1 + wallpapers.length) % wallpapers.length;
+      document.getElementById('modalImage').src = `wallpapers/${wallpapers[currentIndex]}`;
+      updateModalFavButton();
+    }
+
+    function updateModalFavButton() {
+      const btn = document.getElementById('modalFavBtn');
+      const isFav = favorites.includes(wallpapers[currentIndex]);
+      btn.innerHTML = `<i class="fa-solid fa-heart ${isFav ? 'text-red-500' : ''}"></i>`;
+    }
+
+    function toggleFavorite(index) {
+      const filename = wallpapers[index];
+      if (favorites.includes(filename)) {
+        favorites = favorites.filter(f => f !== filename);
+      } else {
+        favorites.push(filename);
+      }
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      renderWallpapers();
+      updateModalFavButton();
+    }
+
+    function downloadCurrent() {
+      const link = document.createElement('a');
+      link.href = `wallpapers/${wallpapers[currentIndex]}`;
+      link.download = wallpapers[currentIndex];
+      link.click();
+    }
+
+    function shareCurrent() {
+      const url = `\( {window.location.origin}/wallpapers/ \){wallpapers[currentIndex]}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Image link copied to clipboard!");
+      });
+    }
+
+    function updateCounter() {
+      document.getElementById('counter').textContent = `${wallpapers.length} Premium Wallpapers`;
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Search
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = wallpapers.filter(f => f.toLowerCase().includes(term));
+      renderWallpapers(filtered);
+    });
+
+    // Sort
+    document.getElementById('sortSelect').addEventListener('change', (e) => {
+      let sorted = [...wallpapers];
+      if (e.target.value === 'az') {
+        sorted.sort();
+      } else if (e.target.value === 'favorites') {
+        sorted = sorted.filter(f => favorites.includes(f));
+      }
+      renderWallpapers(sorted);
+    });
+
+    // Category Filter (Basic - you can extend by naming convention)
+    function filterCategory(btn) {
+      document.querySelectorAll('button[data-category]').forEach(b => b.classList.remove('active-filter', 'bg-violet-600'));
+      btn.classList.add('active-filter', 'bg-violet-600');
+      
+      currentFilter = btn.dataset.category;
+      // For now, show all (you can improve by adding metadata later)
+      renderWallpapers();
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('modal').classList.contains('hidden')) return;
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // Scroll to top visibility
+    window.addEventListener('scroll', () => {
+      document.getElementById('scrollTop').classList.toggle('hidden', window.scrollY < 500);
+    });
+
+    // Initialize
+    window.onload = loadWallpapers;
+  </script>
 </body>
 </html>
